@@ -35,6 +35,30 @@ function App() {
             },
           },
           {
+            selector: 'node[type = "Movie"]',
+            style: {
+              'background-color': '#2563eb',
+            },
+          },
+          {
+            selector: 'node[type = "Actor"]',
+            style: {
+              'background-color': '#16a34a',
+            },
+          },
+          {
+            selector: 'node[type = "Director"]',
+            style: {
+              'background-color': '#dc2626',
+            },
+          },
+          {
+            selector: 'node[type = "Genre"]',
+            style: {
+              'background-color': '#f59e0b',
+            },
+          },
+          {
             selector: 'edge',
             style: {
               label: 'data(label)',

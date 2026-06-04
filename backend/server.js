@@ -45,16 +45,63 @@ app.get('/api/neo4j-test', async (req, res) => {
   }
 })
 
-app.get('/api/graph', (req, res) => {
-  res.json({
-    elements: [
-      { data: { id: 'movie', label: 'Movie' } },
-      { data: { id: 'actor', label: 'Actor' } },
-      { data: { id: 'director', label: 'Director' } },
-      { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
-      { data: { source: 'director', target: 'movie', label: 'DIRECTED' } },
-    ],
+app.get('/api/graph', async (req, res) => {
+  const session = driver.session({
+    database: process.env.NEO4J_DATABASE,
   })
+
+  try {
+    const result = await session.run(`
+      MATCH (source)-[relationship]->(target)
+      WHERE source:Movie OR source:Actor OR source:Director OR source:Genre
+      RETURN source, relationship, target
+      LIMIT 25
+    `)
+
+    const nodes = new Map()
+    const edges = []
+
+    result.records.forEach((record) => {
+      const source = record.get('source')
+      const target = record.get('target')
+      const relationship = record.get('relationship')
+
+      nodes.set(source.elementId, {
+        data: {
+          id: source.elementId,
+          label: source.properties.title || source.properties.name || source.elementId,
+          type: source.labels[0],
+        },
+      })
+
+      nodes.set(target.elementId, {
+        data: {
+          id: target.elementId,
+          label: target.properties.title || target.properties.name || target.elementId,
+          type: target.labels[0],
+        },
+      })
+
+      edges.push({
+        data: {
+          id: relationship.elementId,
+          source: source.elementId,
+          target: target.elementId,
+          label: relationship.type,
+        },
+      })
+    })
+
+    res.json({
+      elements: [...nodes.values(), ...edges],
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    })
+  } finally {
+    await session.close()
+  }
 })
 
 app.listen(port, () => {
