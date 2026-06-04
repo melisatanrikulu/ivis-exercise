@@ -45,6 +45,18 @@ app.get('/api/neo4j-test', async (req, res) => {
   }
 })
 
+app.get('/api/graph', (req, res) => {
+  res.json({
+    elements: [
+      { data: { id: 'movie', label: 'Movie' } },
+      { data: { id: 'actor', label: 'Actor' } },
+      { data: { id: 'director', label: 'Director' } },
+      { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
+      { data: { source: 'director', target: 'movie', label: 'DIRECTED' } },
+    ],
+  })
+})
+
 app.listen(port, () => {
   console.log(`Backend running at http://localhost:${port}`)
 })

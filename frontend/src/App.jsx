@@ -11,45 +11,50 @@ function App() {
   useEffect(() => {
     if (!graphRef.current) return
 
-    const cy = cytoscape({
-      container: graphRef.current,
-      elements: [
-        { data: { id: 'movie', label: 'Movie' } },
-        { data: { id: 'actor', label: 'Actor' } },
-        { data: { id: 'director', label: 'Director' } },
-        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
-        { data: { source: 'director', target: 'movie', label: 'DIRECTED' } },
-      ],
-      layout: {
-        name: 'fcose',
-      },
-      style: [
-        {
-          selector: 'node',
-          style: {
-            label: 'data(label)',
-            'background-color': '#4f46e5',
-            color: '#111827',
-            'text-valign': 'center',
-            'text-halign': 'center',
-          },
+    let cy
+
+    async function loadGraph() {
+      const response = await fetch('http://localhost:3001/api/graph')
+      const data = await response.json()
+
+      cy = cytoscape({
+        container: graphRef.current,
+        elements: data.elements,
+        layout: {
+          name: 'fcose',
         },
-        {
-          selector: 'edge',
-          style: {
-            label: 'data(label)',
-            width: 2,
-            'line-color': '#9ca3af',
-            'target-arrow-shape': 'triangle',
-            'target-arrow-color': '#9ca3af',
-            'curve-style': 'bezier',
+        style: [
+          {
+            selector: 'node',
+            style: {
+              label: 'data(label)',
+              'background-color': '#4f46e5',
+              color: '#111827',
+              'text-valign': 'center',
+              'text-halign': 'center',
+            },
           },
-        },
-      ],
-    })
+          {
+            selector: 'edge',
+            style: {
+              label: 'data(label)',
+              width: 2,
+              'line-color': '#9ca3af',
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': '#9ca3af',
+              'curve-style': 'bezier',
+            },
+          },
+        ],
+      })
+    }
+
+    loadGraph()
 
     return () => {
-      cy.destroy()
+      if (cy) {
+        cy.destroy()
+      }
     }
   }, [])
 
