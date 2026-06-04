@@ -1,121 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect, useRef } from 'react'
 import './App.css'
+import cytoscape from 'cytoscape'
+import fcose from 'cytoscape-fcose'
+
+cytoscape.use(fcose)
 
 function App() {
-  const [count, setCount] = useState(0)
+  const graphRef = useRef(null)
+  
+  useEffect(() => {
+    if (!graphRef.current) return
+
+    const cy = cytoscape({
+      container: graphRef.current,
+      elements: [
+        { data: { id: 'movie', label: 'Movie' } },
+        { data: { id: 'actor', label: 'Actor' } },
+        { data: { id: 'director', label: 'Director' } },
+        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
+        { data: { source: 'director', target: 'movie', label: 'DIRECTED' } },
+      ],
+      layout: {
+        name: 'fcose',
+      },
+      style: [
+        {
+          selector: 'node',
+          style: {
+            label: 'data(label)',
+            'background-color': '#4f46e5',
+            color: '#111827',
+            'text-valign': 'center',
+            'text-halign': 'center',
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            label: 'data(label)',
+            width: 2,
+            'line-color': '#9ca3af',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': '#9ca3af',
+            'curve-style': 'bezier',
+          },
+        },
+      ],
+    })
+
+    return () => {
+      cy.destroy()
+    }
+  }, [])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <main>
+      <div
+        ref={graphRef}
+        style={{
+          width: '100%',
+          height: '100vh',
+          border: '1px solid #ccc',
+        }}
+      />
+    </main>
   )
 }
 
