@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import cytoscape from 'cytoscape'
 import fcose from 'cytoscape-fcose'
@@ -7,6 +7,7 @@ cytoscape.use(fcose)
 
 function App() {
   const graphRef = useRef(null)
+  const [searchText, setSearchText] = useState('')
   
   useEffect(() => {
     if (!graphRef.current) return
@@ -84,13 +85,18 @@ function App() {
 
   return (
     <main>
+      <div className="toolbar">
+        <input
+          type="text"
+          value={searchText}
+          onChange={(event) => setSearchText(event.target.value)}
+          placeholder="Search movie..."
+        />
+      </div>
+
       <div
         ref={graphRef}
-        style={{
-          width: '100%',
-          height: '100vh',
-          border: '1px solid #ccc',
-        }}
+        className="graph"
       />
     </main>
   )
