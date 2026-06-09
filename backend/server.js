@@ -44,3 +44,7 @@ app.get('/api/neo4j-test', async (req, res) => {
     await session.close()
   }
 })
+
+app.listen(port, () => {
+  console.log(`Backend running at http://localhost:${port}`)
+})
