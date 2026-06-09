@@ -59874,13 +59874,18 @@ const GraphModel = Backbone.Model.extend({
     }
   },
 
-  loadGraph: function () {
-    return fetch('http://localhost:3001/api/graph')
-      .then((response) => response.json())
-      .then((data) => {
+    loadGraph: function (actorName, depth) {
+    const query = new URLSearchParams({
+        actor: actorName,
+        depth: depth,
+    })
+
+    return fetch(`http://localhost:3001/api/graph?${query.toString()}`)
+        .then((response) => response.json())
+        .then((data) => {
         this.set('elements', data.elements)
-      })
-  },
+        })
+    },
 })
 
 module.exports = GraphModel
@@ -59893,6 +59898,17 @@ const GraphModel = require('../models/GraphModel')
 Backbone.$ = $
 
 const AppView = Backbone.View.extend({
+  events: {
+    'click .load-graph': 'onLoadGraph',
+  },
+
+  onLoadGraph: function () {
+    const actorName = this.$('.actor-name').val()
+    const depth = this.$('.actor-depth').val()
+
+    this.graphModel.loadGraph(actorName, depth)
+  },
+  
   render: function () {
     this.$el.html(`
       <div class="app">
@@ -59904,14 +59920,15 @@ const AppView = Backbone.View.extend({
         <div class="graph"></div>
       </div>
     `)
-    const graphModel = new GraphModel()
+    this.graphModel = new GraphModel()
+
     const graphView = new GraphView({
       el: this.$('.graph')[0],
-      model: graphModel,
+      model: this.graphModel,
     })
 
     graphView.render()
-    graphModel.loadGraph()
+    this.graphModel.loadGraph('', 1)
 
     return this
   },
@@ -59945,6 +59962,7 @@ const GraphView = Backbone.View.extend({
           style: {
             label: 'data(label)',
             color: '#111827',
+            'font-size': 10,
             'text-valign': 'center',
             'text-halign': 'center',
           },
@@ -59965,6 +59983,7 @@ const GraphView = Backbone.View.extend({
           selector: 'edge',
           style: {
             label: 'data(label)',
+            'font-size': 8,
             width: 2,
             'line-color': '#9ca3af',
             'target-arrow-shape': 'triangle',

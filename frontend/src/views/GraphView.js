@@ -24,6 +24,7 @@ const GraphView = Backbone.View.extend({
           style: {
             label: 'data(label)',
             color: '#111827',
+            'font-size': 10,
             'text-valign': 'center',
             'text-halign': 'center',
           },
@@ -44,6 +45,7 @@ const GraphView = Backbone.View.extend({
           selector: 'edge',
           style: {
             label: 'data(label)',
+            'font-size': 8,
             width: 2,
             'line-color': '#9ca3af',
             'target-arrow-shape': 'triangle',

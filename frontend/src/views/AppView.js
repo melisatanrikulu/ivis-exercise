@@ -6,6 +6,17 @@ const GraphModel = require('../models/GraphModel')
 Backbone.$ = $
 
 const AppView = Backbone.View.extend({
+  events: {
+    'click .load-graph': 'onLoadGraph',
+  },
+
+  onLoadGraph: function () {
+    const actorName = this.$('.actor-name').val()
+    const depth = this.$('.actor-depth').val()
+
+    this.graphModel.loadGraph(actorName, depth)
+  },
+  
   render: function () {
     this.$el.html(`
       <div class="app">
@@ -17,14 +28,15 @@ const AppView = Backbone.View.extend({
         <div class="graph"></div>
       </div>
     `)
-    const graphModel = new GraphModel()
+    this.graphModel = new GraphModel()
+
     const graphView = new GraphView({
       el: this.$('.graph')[0],
-      model: graphModel,
+      model: this.graphModel,
     })
 
     graphView.render()
-    graphModel.loadGraph()
+    this.graphModel.loadGraph('', 1)
 
     return this
   },

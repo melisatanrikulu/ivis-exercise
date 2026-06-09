@@ -50,12 +50,36 @@ app.get('/api/graph', async (req, res) => {
     database: process.env.NEO4J_DATABASE,
   })
 
+  const actorName = req.query.actor || ''
+  const depth = Number(req.query.depth || 1)
+
   try {
-    const result = await session.run(`
-      MATCH (actor:Actor)-[relationship:ACTED_IN]->(movie:Movie)
-      RETURN actor, relationship, movie
-      LIMIT 25
-    `)
+  const result = await session.run(`
+    MATCH (start:Actor)
+    WHERE toLower(start.name) CONTAINS toLower($actorName)
+    WITH start
+    LIMIT 1
+
+    MATCH path = shortestPath((start)-[:ACTED_IN*0..${depth * 2}]-(neighbor:Actor))
+    WHERE length(path) % 2 = 0
+
+    UNWIND relationships(path) AS relationship
+
+    WITH DISTINCT
+      CASE
+        WHEN startNode(relationship):Actor THEN startNode(relationship)
+        ELSE endNode(relationship)
+      END AS actor,
+      relationship,
+      CASE
+        WHEN startNode(relationship):Movie THEN startNode(relationship)
+        ELSE endNode(relationship)
+      END AS movie
+
+    WHERE actor:Actor AND movie:Movie
+    RETURN actor, relationship, movie
+    LIMIT 500
+  `, { actorName })
 
     const nodes = new Map()
     const edges = []
