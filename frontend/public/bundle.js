@@ -59864,10 +59864,27 @@ const appView = new AppView({
 })
 
 appView.render()
-},{"./views/AppView":11}],11:[function(require,module,exports){
+},{"./views/AppView":12}],11:[function(require,module,exports){
+const Backbone = require('backbone')
+
+const GraphModel = Backbone.Model.extend({
+  defaults: function () {
+    return {
+      elements: [
+        { data: { id: 'actor', label: 'Actor', type: 'Actor' } },
+        { data: { id: 'movie', label: 'Movie', type: 'Movie' } },
+        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
+      ],
+    }
+  },
+})
+
+module.exports = GraphModel
+},{"backbone":1}],12:[function(require,module,exports){
 const Backbone = require('backbone')
 const $ = require('jquery')
 const GraphView = require('./GraphView')
+const GraphModel = require('../models/GraphModel')
 
 Backbone.$ = $
 
@@ -59883,8 +59900,10 @@ const AppView = Backbone.View.extend({
         <div class="graph"></div>
       </div>
     `)
+    const graphModel = new GraphModel()
     const graphView = new GraphView({
       el: this.$('.graph')[0],
+      model: graphModel,
     })
 
     graphView.render()
@@ -59894,7 +59913,7 @@ const AppView = Backbone.View.extend({
 })
 
 module.exports = AppView
-},{"./GraphView":12,"backbone":1,"jquery":5}],12:[function(require,module,exports){
+},{"../models/GraphModel":11,"./GraphView":13,"backbone":1,"jquery":5}],13:[function(require,module,exports){
 const Backbone = require('backbone')
 const cytoscape = require('cytoscape')
 const fcose = require('cytoscape-fcose')
@@ -59905,11 +59924,7 @@ const GraphView = Backbone.View.extend({
   render: function () {
     cytoscape({
       container: this.el,
-      elements: [
-        { data: { id: 'actor', label: 'Actor', type: 'Actor' } },
-        { data: { id: 'movie', label: 'Movie', type: 'Movie' } },
-        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
-      ],
+      elements: this.model.get('elements'),
       layout: {
         name: 'fcose',
       },

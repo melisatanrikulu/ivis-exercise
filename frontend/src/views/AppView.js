@@ -1,6 +1,7 @@
 const Backbone = require('backbone')
 const $ = require('jquery')
 const GraphView = require('./GraphView')
+const GraphModel = require('../models/GraphModel')
 
 Backbone.$ = $
 
@@ -16,8 +17,10 @@ const AppView = Backbone.View.extend({
         <div class="graph"></div>
       </div>
     `)
+    const graphModel = new GraphModel()
     const graphView = new GraphView({
       el: this.$('.graph')[0],
+      model: graphModel,
     })
 
     graphView.render()
