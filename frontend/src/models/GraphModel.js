@@ -3,12 +3,16 @@ const Backbone = require('backbone')
 const GraphModel = Backbone.Model.extend({
   defaults: function () {
     return {
-      elements: [
-        { data: { id: 'actor', label: 'Actor', type: 'Actor' } },
-        { data: { id: 'movie', label: 'Movie', type: 'Movie' } },
-        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
-      ],
+      elements: [],
     }
+  },
+
+  loadGraph: function () {
+    return fetch('http://localhost:3001/api/graph')
+      .then((response) => response.json())
+      .then((data) => {
+        this.set('elements', data.elements)
+      })
   },
 })
 

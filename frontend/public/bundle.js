@@ -59870,12 +59870,16 @@ const Backbone = require('backbone')
 const GraphModel = Backbone.Model.extend({
   defaults: function () {
     return {
-      elements: [
-        { data: { id: 'actor', label: 'Actor', type: 'Actor' } },
-        { data: { id: 'movie', label: 'Movie', type: 'Movie' } },
-        { data: { source: 'actor', target: 'movie', label: 'ACTED_IN' } },
-      ],
+      elements: [],
     }
+  },
+
+  loadGraph: function () {
+    return fetch('http://localhost:3001/api/graph')
+      .then((response) => response.json())
+      .then((data) => {
+        this.set('elements', data.elements)
+      })
   },
 })
 
@@ -59907,6 +59911,7 @@ const AppView = Backbone.View.extend({
     })
 
     graphView.render()
+    graphModel.loadGraph()
 
     return this
   },
@@ -59921,8 +59926,14 @@ const fcose = require('cytoscape-fcose')
 cytoscape.use(fcose)
 
 const GraphView = Backbone.View.extend({
+  initialize: function () {
+    this.listenTo(this.model, 'change:elements', this.render)
+  },
   render: function () {
-    cytoscape({
+    if (this.cy) {
+      this.cy.destroy()
+    }
+    this.cy = cytoscape({
       container: this.el,
       elements: this.model.get('elements'),
       layout: {

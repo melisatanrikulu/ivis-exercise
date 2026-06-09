@@ -5,8 +5,14 @@ const fcose = require('cytoscape-fcose')
 cytoscape.use(fcose)
 
 const GraphView = Backbone.View.extend({
+  initialize: function () {
+    this.listenTo(this.model, 'change:elements', this.render)
+  },
   render: function () {
-    cytoscape({
+    if (this.cy) {
+      this.cy.destroy()
+    }
+    this.cy = cytoscape({
       container: this.el,
       elements: this.model.get('elements'),
       layout: {

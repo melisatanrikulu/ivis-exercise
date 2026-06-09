@@ -24,6 +24,7 @@ const AppView = Backbone.View.extend({
     })
 
     graphView.render()
+    graphModel.loadGraph()
 
     return this
   },
