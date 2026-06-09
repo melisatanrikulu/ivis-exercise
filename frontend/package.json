@@ -16,5 +16,9 @@
     "cytoscape-fcose": "^2.2.0",
     "jquery": "^4.0.0",
     "underscore": "^1.13.8"
+  },
+  "devDependencies": {
+    "browserify": "^17.0.1",
+    "watchify": "^4.0.0"
   }
 }
