@@ -127,6 +127,64 @@ app.get('/api/graph', async (req, res) => {
   }
 })
 
+app.get('/api/actor/:id/movies', async (req, res) => {
+  const session = driver.session({
+    database: process.env.NEO4J_DATABASE,
+  })
+
+  try {
+    const result = await session.run(`
+      MATCH (actor:Actor)-[relationship:ACTED_IN]->(movie:Movie)
+      WHERE elementId(actor) = $actorId
+      RETURN actor, relationship, movie
+    `, { actorId: req.params.id })
+
+    const nodes = new Map()
+    const edges = []
+
+    result.records.forEach((record) => {
+      const actor = record.get('actor')
+      const movie = record.get('movie')
+      const relationship = record.get('relationship')
+
+      nodes.set(actor.elementId, {
+        data: {
+          id: actor.elementId,
+          label: actor.properties.name || actor.elementId,
+          type: 'Actor',
+        },
+      })
+
+      nodes.set(movie.elementId, {
+        data: {
+          id: movie.elementId,
+          label: movie.properties.title || movie.elementId,
+          type: 'Movie',
+        },
+      })
+
+      edges.push({
+        data: {
+          id: relationship.elementId,
+          source: actor.elementId,
+          target: movie.elementId,
+          label: relationship.type,
+        },
+      })
+    })
+
+    res.json({
+      elements: [...nodes.values(), ...edges],
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    })
+  } finally {
+    await session.close()
+  }
+})
+
 app.listen(port, () => {
   console.log(`Backend running at http://localhost:${port}`)
 })

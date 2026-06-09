@@ -1,8 +1,10 @@
 const Backbone = require('backbone')
 const cytoscape = require('cytoscape')
 const fcose = require('cytoscape-fcose')
+const contextMenus = require('cytoscape-context-menus')
 
 cytoscape.use(fcose)
+contextMenus(cytoscape)
 
 const GraphView = Backbone.View.extend({
   initialize: function () {
@@ -51,6 +53,29 @@ const GraphView = Backbone.View.extend({
             'target-arrow-shape': 'triangle',
             'target-arrow-color': '#9ca3af',
             'curve-style': 'bezier',
+          },
+        },
+      ],
+    })
+
+    this.cy.contextMenus({
+      menuItems: [
+        {
+          id: 'show-movies',
+          content: 'Show movies',
+          selector: 'node[type = "Actor"]',
+          onClickFunction: function (event) {
+            const node = event.target || event.cyTarget
+            console.log('Show movies for actor:', node.data('label'))
+          },
+        },
+        {
+          id: 'show-actors',
+          content: 'Show actors',
+          selector: 'node[type = "Movie"]',
+          onClickFunction: function (event) {
+            const node = event.target || event.cyTarget
+            console.log('Show actors for movie:', node.data('label'))
           },
         },
       ],

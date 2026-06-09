@@ -42,3 +42,20 @@ body {
   flex: 1;
   min-height: 0;
 }
+
+.cy-context-menus-cxt-menu {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  min-width: 140px;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.cy-context-menus-cxt-menuitem {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.cy-context-menus-cxt-menuitem:hover {
+  background: #f3f4f6;
+}
