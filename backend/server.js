@@ -54,32 +54,32 @@ app.get('/api/graph', async (req, res) => {
   const depth = Number(req.query.depth || 1)
 
   try {
-  const result = await session.run(`
-    MATCH (start:Actor)
-    WHERE toLower(start.name) CONTAINS toLower($actorName)
-    WITH start
-    LIMIT 1
+    const result = await session.run(`
+      MATCH (start:Actor)
+      WHERE toLower(start.name) CONTAINS toLower($actorName)
+      WITH start
+      LIMIT 1
 
-    MATCH path = shortestPath((start)-[:ACTED_IN*0..${depth * 2}]-(neighbor:Actor))
-    WHERE length(path) % 2 = 0
+      MATCH path = shortestPath((start)-[:ACTED_IN*0..${depth * 2}]-(neighbor:Actor))
+      WHERE length(path) % 2 = 0
 
-    UNWIND relationships(path) AS relationship
+      UNWIND relationships(path) AS relationship
 
-    WITH DISTINCT
-      CASE
-        WHEN startNode(relationship):Actor THEN startNode(relationship)
-        ELSE endNode(relationship)
-      END AS actor,
-      relationship,
-      CASE
-        WHEN startNode(relationship):Movie THEN startNode(relationship)
-        ELSE endNode(relationship)
-      END AS movie
+      WITH DISTINCT
+        CASE
+          WHEN startNode(relationship):Actor THEN startNode(relationship)
+          ELSE endNode(relationship)
+        END AS actor,
+        relationship,
+        CASE
+          WHEN startNode(relationship):Movie THEN startNode(relationship)
+          ELSE endNode(relationship)
+        END AS movie
 
-    WHERE actor:Actor AND movie:Movie
-    RETURN actor, relationship, movie
-    LIMIT 500
-  `, { actorName })
+      WHERE actor:Actor AND movie:Movie
+      RETURN actor, relationship, movie
+      LIMIT 500
+    `, { actorName })
 
     const nodes = new Map()
     const edges = []
@@ -138,6 +138,64 @@ app.get('/api/actor/:id/movies', async (req, res) => {
       WHERE elementId(actor) = $actorId
       RETURN actor, relationship, movie
     `, { actorId: req.params.id })
+
+    const nodes = new Map()
+    const edges = []
+
+    result.records.forEach((record) => {
+      const actor = record.get('actor')
+      const movie = record.get('movie')
+      const relationship = record.get('relationship')
+
+      nodes.set(actor.elementId, {
+        data: {
+          id: actor.elementId,
+          label: actor.properties.name || actor.elementId,
+          type: 'Actor',
+        },
+      })
+
+      nodes.set(movie.elementId, {
+        data: {
+          id: movie.elementId,
+          label: movie.properties.title || movie.elementId,
+          type: 'Movie',
+        },
+      })
+
+      edges.push({
+        data: {
+          id: relationship.elementId,
+          source: actor.elementId,
+          target: movie.elementId,
+          label: relationship.type,
+        },
+      })
+    })
+
+    res.json({
+      elements: [...nodes.values(), ...edges],
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    })
+  } finally {
+    await session.close()
+  }
+})
+
+app.get('/api/movie/:id/actors', async (req, res) => {
+  const session = driver.session({
+    database: process.env.NEO4J_DATABASE,
+  })
+
+  try {
+    const result = await session.run(`
+      MATCH (actor:Actor)-[relationship:ACTED_IN]->(movie:Movie)
+      WHERE elementId(movie) = $movieId
+      RETURN actor, relationship, movie
+    `, { movieId: req.params.id })
 
     const nodes = new Map()
     const edges = []

@@ -64,18 +64,18 @@ const GraphView = Backbone.View.extend({
           id: 'show-movies',
           content: 'Show movies',
           selector: 'node[type = "Actor"]',
-          onClickFunction: function (event) {
+          onClickFunction: (event) => {
             const node = event.target || event.cyTarget
-            console.log('Show movies for actor:', node.data('label'))
+            this.model.loadActorMovies(node.id())
           },
         },
         {
           id: 'show-actors',
           content: 'Show actors',
           selector: 'node[type = "Movie"]',
-          onClickFunction: function (event) {
+          onClickFunction: (event) => {
             const node = event.target || event.cyTarget
-            console.log('Show actors for movie:', node.data('label'))
+            this.model.loadMovieActors(node.id())
           },
         },
       ],
