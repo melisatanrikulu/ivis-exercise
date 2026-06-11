@@ -59885,12 +59885,16 @@ const GraphModel = Backbone.Model.extend({
     return fetch(`http://localhost:3001/api/graph?${query.toString()}`)
       .then((response) => response.json())
       .then((data) => {
-        this.set('elements', data.elements)
+        this.set({
+          elements: data.elements,
+          updateMode: 'replace',
+        })
       })
   },
 
   mergeElements: function (newElements) {
     const existingElements = this.get('elements')
+    console.log('Merge before:', existingElements.length)
     const elementsById = new Map()
 
     existingElements.forEach((element) => {
@@ -59900,14 +59904,18 @@ const GraphModel = Backbone.Model.extend({
     newElements.forEach((element) => {
       elementsById.set(element.data.id, element)
     })
-
-    this.set('elements', Array.from(elementsById.values()))
+    console.log('Merge after:', elementsById.size)
+    this.set({
+      elements: Array.from(elementsById.values()),
+      updateMode: 'expand',
+    })
   },
 
   loadActorMovies: function (actorId) {
     return fetch(`http://localhost:3001/api/actor/${encodeURIComponent(actorId)}/movies`)
       .then((response) => response.json())
       .then((data) => {
+        console.log('Actor movies returned', data.elements.length)
         this.mergeElements(data.elements)
       })
   },
@@ -59916,6 +59924,7 @@ const GraphModel = Backbone.Model.extend({
     return fetch(`http://localhost:3001/api/movie/${encodeURIComponent(movieId)}/actors`)
       .then((response) => response.json())
       .then((data) => {
+        console.log('Movie actors returned', data.elements.length)
         this.mergeElements(data.elements)
       })
   },
@@ -59979,7 +59988,34 @@ contextMenus(cytoscape)
 
 const GraphView = Backbone.View.extend({
   initialize: function () {
-    this.listenTo(this.model, 'change:elements', this.render)
+    this.listenTo(this.model, 'change:elements', this.updateGraph)
+  },
+  updateGraph: function () {
+    const updateMode = this.model.get('updateMode')
+
+    if (updateMode === 'replace' || !this.cy) {
+      this.render()
+      return
+    }
+
+    const elements = this.model.get('elements')
+
+    elements.forEach((element) => {
+      if (!this.cy.getElementById(element.data.id).length) {
+        this.cy.add(element)
+      }
+    })
+
+    this.cy.layout({
+      name: 'fcose',
+      randomize: false,
+      fit: true,
+      padding: 50,
+      quality: 'default',
+      nodeRepulsion: 7000,
+      idealEdgeLength: 120,
+      gravity: 0.15,
+    }).run()
   },
   render: function () {
     if (this.cy) {
@@ -59990,6 +60026,9 @@ const GraphView = Backbone.View.extend({
       elements: this.model.get('elements'),
       layout: {
         name: 'fcose',
+        randomize: true,
+        fit: true,
+        padding: 40,
       },
       style: [
         {
@@ -60037,6 +60076,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Actor"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            console.log('Show movies clicked', node && node.id(), node && node.data('label'))
             this.model.loadActorMovies(node.id())
           },
         },
@@ -60046,6 +60086,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Movie"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            console.log('Show actors clicked', node && node.id(), node && node.data('label'))
             this.model.loadMovieActors(node.id())
           },
         },

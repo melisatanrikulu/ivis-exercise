@@ -8,7 +8,34 @@ contextMenus(cytoscape)
 
 const GraphView = Backbone.View.extend({
   initialize: function () {
-    this.listenTo(this.model, 'change:elements', this.render)
+    this.listenTo(this.model, 'change:elements', this.updateGraph)
+  },
+  updateGraph: function () {
+    const updateMode = this.model.get('updateMode')
+
+    if (updateMode === 'replace' || !this.cy) {
+      this.render()
+      return
+    }
+
+    const elements = this.model.get('elements')
+
+    elements.forEach((element) => {
+      if (!this.cy.getElementById(element.data.id).length) {
+        this.cy.add(element)
+      }
+    })
+
+    this.cy.layout({
+      name: 'fcose',
+      randomize: false,
+      fit: true,
+      padding: 50,
+      quality: 'default',
+      nodeRepulsion: 7000,
+      idealEdgeLength: 120,
+      gravity: 0.15,
+    }).run()
   },
   render: function () {
     if (this.cy) {
@@ -19,6 +46,9 @@ const GraphView = Backbone.View.extend({
       elements: this.model.get('elements'),
       layout: {
         name: 'fcose',
+        randomize: true,
+        fit: true,
+        padding: 40,
       },
       style: [
         {
@@ -66,6 +96,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Actor"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            console.log('Show movies clicked', node && node.id(), node && node.data('label'))
             this.model.loadActorMovies(node.id())
           },
         },
@@ -75,6 +106,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Movie"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            console.log('Show actors clicked', node && node.id(), node && node.data('label'))
             this.model.loadMovieActors(node.id())
           },
         },
