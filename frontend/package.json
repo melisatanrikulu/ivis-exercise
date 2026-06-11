@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "browserify src/main.js -o public/bundle.js",
-    "watch": "watchify src/main.js -o public/bundle.js -d -v"
+    "watch": "watchify src/main.js -o public/bundle.js -d -v",
+    "serve": "http-server public -p 8080"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "browserify": "^17.0.1",
+    "http-server": "^14.1.1",
     "watchify": "^4.0.0"
   }
 }
