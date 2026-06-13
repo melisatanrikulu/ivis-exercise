@@ -9,6 +9,7 @@ contextMenus(cytoscape)
 const GraphView = Backbone.View.extend({
   initialize: function () {
     this.listenTo(this.model, 'change:elements', this.updateGraph)
+    this.listenTo(this.model, 'applyLayout', this.applyLayout)
   },
   updateGraph: function () {
     const updateMode = this.model.get('updateMode')
@@ -26,29 +27,39 @@ const GraphView = Backbone.View.extend({
       }
     })
 
+    const fcoseOptions = this.model.get('fcoseOptions') || {}
+
     this.cy.layout({
       name: 'fcose',
-      randomize: false,
-      fit: true,
-      padding: 50,
-      quality: 'default',
-      nodeRepulsion: 7000,
-      idealEdgeLength: 120,
-      gravity: 0.15,
+      ...fcoseOptions,
+    }).run()
+  },
+  applyLayout: function () {
+    if (!this.cy) {
+      return
+    }
+
+    const fcoseOptions = this.model.get('fcoseOptions') || {}
+
+    this.cy.layout({
+      name: 'fcose',
+      ...fcoseOptions,
     }).run()
   },
   render: function () {
     if (this.cy) {
       this.cy.destroy()
     }
+
+    const fcoseOptions = this.model.get('fcoseOptions') || {}
+
     this.cy = cytoscape({
       container: this.el,
       elements: this.model.get('elements'),
       layout: {
         name: 'fcose',
+        ...fcoseOptions,
         randomize: true,
-        fit: true,
-        padding: 40,
       },
       style: [
         {

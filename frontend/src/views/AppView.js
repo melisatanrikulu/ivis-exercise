@@ -8,6 +8,7 @@ Backbone.$ = $
 const AppView = Backbone.View.extend({
   events: {
     'click .load-graph': 'onLoadGraph',
+    'click .apply-layout': 'onApplyLayout',
   },
 
   onLoadGraph: function () {
@@ -16,8 +17,24 @@ const AppView = Backbone.View.extend({
 
     this.graphModel.loadGraph(actorName, depth)
   },
+
+  onApplyLayout: function () {
+    this.graphModel.set('fcoseOptions', {
+      nodeRepulsion: Number(this.$('.fcose-node-repulsion').val()),
+      idealEdgeLength: Number(this.$('.fcose-ideal-edge-length').val()),
+      gravity: Number(this.$('.fcose-gravity').val()),
+      fit: this.$('.fcose-fit').is(':checked'),
+      randomize: this.$('.fcose-randomize').is(':checked'),
+      padding: Number(this.$('.fcose-padding').val()),
+    })
+
+    this.graphModel.trigger('applyLayout')
+  },
   
   render: function () {
+    this.graphModel = new GraphModel()
+    const fcoseOptions = this.graphModel.get('fcoseOptions')
+
     this.$el.html(`
       <div class="app">
         <div class="toolbar">
@@ -25,10 +42,47 @@ const AppView = Backbone.View.extend({
           <input class="actor-depth" type="number" min="1" value="1">
           <button class="load-graph">Load graph</button>
         </div>
+        <div class="content">
+        <div class="layout-panel">
+          <h3>Layout Settings</h3>
+
+          <label>
+            Node Repulsion
+            <input class="fcose-node-repulsion" type="number" min="0" value="${fcoseOptions.nodeRepulsion}">
+          </label>
+
+          <label>
+            Ideal Edge Length
+            <input class="fcose-ideal-edge-length" type="number" min="0" value="${fcoseOptions.idealEdgeLength}">
+          </label>
+
+          <label>
+            Gravity
+            <input class="fcose-gravity" type="number" min="0" step="0.1" value="${fcoseOptions.gravity}">
+          </label>
+
+          <label class="checkbox-field">
+            <span>Fit</span>
+            <input class="fcose-fit" type="checkbox" ${fcoseOptions.fit ? 'checked' : ''}>
+          </label>
+
+          <label class="checkbox-field">
+            <span>Randomize</span>
+            <input class="fcose-randomize" type="checkbox" ${fcoseOptions.randomize ? 'checked' : ''}>
+          </label>
+
+          <label>
+            Padding
+            <input class="fcose-padding" type="number" min="0" value="${fcoseOptions.padding}">
+          </label>
+
+          <button class="apply-layout">Apply Layout</button>
+        </div>
+
         <div class="graph"></div>
       </div>
+      </div>
     `)
-    this.graphModel = new GraphModel()
 
     const graphView = new GraphView({
       el: this.$('.graph')[0],
