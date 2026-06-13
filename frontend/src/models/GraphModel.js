@@ -8,7 +8,6 @@ const GraphModel = Backbone.Model.extend({
         nodeRepulsion: 4500,
         idealEdgeLength: 50,
         gravity: 0.25,
-        fit: true,
         randomize: false,
         padding: 30,
       },

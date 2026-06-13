@@ -75,19 +75,6 @@ body {
   cursor: pointer;
 }
 
-.layout-panel label.checkbox-field {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  font-size: 14px;
-}
-
-.layout-panel label.checkbox-field input[type="checkbox"] {
-  margin: 0;
-}
-
 .graph {
   flex: 1;
   min-width: 0;

@@ -20,19 +20,42 @@ const GraphView = Backbone.View.extend({
     }
 
     const elements = this.model.get('elements')
+    const newNodes = []
 
     elements.forEach((element) => {
       if (!this.cy.getElementById(element.data.id).length) {
-        this.cy.add(element)
+        const added = this.cy.add(element)
+
+        if (!element.data.source && !element.data.target) {
+          newNodes.push(added)
+        }
       }
     })
 
+    const sourceNode = this.cy.getElementById(this.expansionSourceNodeId)
     const fcoseOptions = this.model.get('fcoseOptions') || {}
+
+    if (sourceNode.length && newNodes.length) {
+      const center = sourceNode.position()
+      const radius = 10
+
+      newNodes.forEach((node, index) => {
+        const angle = (2 * Math.PI * index) / newNodes.length
+
+        node.position({
+          x: center.x + radius * Math.cos(angle),
+          y: center.y + radius * Math.sin(angle),
+        })
+      })
+    }
 
     this.cy.layout({
       name: 'fcose',
       ...fcoseOptions,
+      randomize: false,
     }).run()
+
+    this.expansionSourceNodeId = null
   },
   applyLayout: function () {
     if (!this.cy) {
@@ -44,6 +67,7 @@ const GraphView = Backbone.View.extend({
     this.cy.layout({
       name: 'fcose',
       ...fcoseOptions,
+      randomize: false,
     }).run()
   },
   render: function () {
@@ -107,6 +131,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Actor"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            this.expansionSourceNodeId = node.id()
             console.log('Show movies clicked', node && node.id(), node && node.data('label'))
             this.model.loadActorMovies(node.id())
           },
@@ -117,6 +142,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Movie"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            this.expansionSourceNodeId = node.id()
             console.log('Show actors clicked', node && node.id(), node && node.data('label'))
             this.model.loadMovieActors(node.id())
           },

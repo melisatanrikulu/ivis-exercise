@@ -59965,8 +59965,6 @@ const AppView = Backbone.View.extend({
       nodeRepulsion: Number(this.$('.fcose-node-repulsion').val()),
       idealEdgeLength: Number(this.$('.fcose-ideal-edge-length').val()),
       gravity: Number(this.$('.fcose-gravity').val()),
-      fit: this.$('.fcose-fit').is(':checked'),
-      randomize: this.$('.fcose-randomize').is(':checked'),
       padding: Number(this.$('.fcose-padding').val()),
     })
 
@@ -60001,16 +59999,6 @@ const AppView = Backbone.View.extend({
           <label>
             Gravity
             <input class="fcose-gravity" type="number" min="0" step="0.1" value="${fcoseOptions.gravity}">
-          </label>
-
-          <label class="checkbox-field">
-            <span>Fit</span>
-            <input class="fcose-fit" type="checkbox" ${fcoseOptions.fit ? 'checked' : ''}>
-          </label>
-
-          <label class="checkbox-field">
-            <span>Randomize</span>
-            <input class="fcose-randomize" type="checkbox" ${fcoseOptions.randomize ? 'checked' : ''}>
           </label>
 
           <label>
@@ -60062,19 +60050,42 @@ const GraphView = Backbone.View.extend({
     }
 
     const elements = this.model.get('elements')
+    const newNodes = []
 
     elements.forEach((element) => {
       if (!this.cy.getElementById(element.data.id).length) {
-        this.cy.add(element)
+        const added = this.cy.add(element)
+
+        if (!element.data.source && !element.data.target) {
+          newNodes.push(added)
+        }
       }
     })
 
+    const sourceNode = this.cy.getElementById(this.expansionSourceNodeId)
     const fcoseOptions = this.model.get('fcoseOptions') || {}
+
+    if (sourceNode.length && newNodes.length) {
+      const center = sourceNode.position()
+      const radius = 10
+
+      newNodes.forEach((node, index) => {
+        const angle = (2 * Math.PI * index) / newNodes.length
+
+        node.position({
+          x: center.x + radius * Math.cos(angle),
+          y: center.y + radius * Math.sin(angle),
+        })
+      })
+    }
 
     this.cy.layout({
       name: 'fcose',
       ...fcoseOptions,
+      randomize: false,
     }).run()
+
+    this.expansionSourceNodeId = null
   },
   applyLayout: function () {
     if (!this.cy) {
@@ -60086,6 +60097,7 @@ const GraphView = Backbone.View.extend({
     this.cy.layout({
       name: 'fcose',
       ...fcoseOptions,
+      randomize: false,
     }).run()
   },
   render: function () {
@@ -60149,6 +60161,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Actor"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            this.expansionSourceNodeId = node.id()
             console.log('Show movies clicked', node && node.id(), node && node.data('label'))
             this.model.loadActorMovies(node.id())
           },
@@ -60159,6 +60172,7 @@ const GraphView = Backbone.View.extend({
           selector: 'node[type = "Movie"]',
           onClickFunction: (event) => {
             const node = event.target || event.cyTarget
+            this.expansionSourceNodeId = node.id()
             console.log('Show actors clicked', node && node.id(), node && node.data('label'))
             this.model.loadMovieActors(node.id())
           },

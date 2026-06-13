@@ -23,8 +23,6 @@ const AppView = Backbone.View.extend({
       nodeRepulsion: Number(this.$('.fcose-node-repulsion').val()),
       idealEdgeLength: Number(this.$('.fcose-ideal-edge-length').val()),
       gravity: Number(this.$('.fcose-gravity').val()),
-      fit: this.$('.fcose-fit').is(':checked'),
-      randomize: this.$('.fcose-randomize').is(':checked'),
       padding: Number(this.$('.fcose-padding').val()),
     })
 
@@ -59,16 +57,6 @@ const AppView = Backbone.View.extend({
           <label>
             Gravity
             <input class="fcose-gravity" type="number" min="0" step="0.1" value="${fcoseOptions.gravity}">
-          </label>
-
-          <label class="checkbox-field">
-            <span>Fit</span>
-            <input class="fcose-fit" type="checkbox" ${fcoseOptions.fit ? 'checked' : ''}>
-          </label>
-
-          <label class="checkbox-field">
-            <span>Randomize</span>
-            <input class="fcose-randomize" type="checkbox" ${fcoseOptions.randomize ? 'checked' : ''}>
           </label>
 
           <label>
