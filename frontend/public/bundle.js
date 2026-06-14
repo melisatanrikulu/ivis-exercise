@@ -59977,7 +59977,7 @@ const AppView = Backbone.View.extend({
     this.$el.html(`
       <div class="app">
         <div class="toolbar">
-          <input class="actor-name" type="text" placeholder="Actor name">
+          <input class="actor-name" type="text" placeholder="Actor name" value="Tom Hardy">
           <input class="actor-depth" type="number" min="0" value="1">
           <button class="load-graph">Load graph</button>
         </div>
@@ -60019,7 +60019,7 @@ const AppView = Backbone.View.extend({
     })
 
     graphView.render()
-    this.graphModel.loadGraph('', 1)
+    this.graphModel.loadGraph('Tom Hardy', 1)
 
     return this
   },
