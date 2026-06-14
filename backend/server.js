@@ -56,30 +56,35 @@ app.get('/api/graph', async (req, res) => {
   try {
     const result = await session.run(`
       MATCH (start:Actor)
-      WHERE toLower(start.name) CONTAINS toLower($actorName)
+      WHERE toLower(start.name) = toLower($actorName)
       WITH start
       LIMIT 1
 
-      MATCH path = shortestPath((start)-[:ACTED_IN*0..${depth * 2}]-(neighbor:Actor))
-      WHERE length(path) % 2 = 0
+      CALL apoc.path.expandConfig(start, {
+        relationshipFilter: "ACTED_IN|<ACTED_IN",
+        minLevel: 0,
+        maxLevel: $depth * 2,
+        bfs: true,
+        uniqueness: "NODE_GLOBAL"
+      }) YIELD path
 
-      UNWIND relationships(path) AS relationship
+      WITH DISTINCT last(nodes(path)) AS node, length(path) AS dist, start
+      WHERE
+        (node:Actor AND dist % 2 = 0) OR
+        (node:Movie AND dist % 2 = 1)
 
-      WITH DISTINCT
-        CASE
-          WHEN startNode(relationship):Actor THEN startNode(relationship)
-          ELSE endNode(relationship)
-        END AS actor,
-        relationship,
-        CASE
-          WHEN startNode(relationship):Movie THEN startNode(relationship)
-          ELSE endNode(relationship)
-        END AS movie
+      WITH
+        start,
+        collect(DISTINCT CASE WHEN node:Actor THEN node END) AS actors,
+        collect(DISTINCT CASE WHEN node:Movie THEN node END) AS movies
 
-      WHERE actor:Actor AND movie:Movie
-      RETURN actor, relationship, movie
+      UNWIND [a IN actors WHERE a IS NOT NULL] AS actor
+      OPTIONAL MATCH (actor)-[relationship:ACTED_IN]->(movie:Movie)
+      WHERE movie IN [m IN movies WHERE m IS NOT NULL]
+
+      RETURN DISTINCT actor, relationship, movie
       LIMIT 500
-    `, { actorName })
+    `, { actorName, depth })
 
     const nodes = new Map()
     const edges = []
@@ -89,30 +94,36 @@ app.get('/api/graph', async (req, res) => {
       const movie = record.get('movie')
       const relationship = record.get('relationship')
 
-      nodes.set(actor.elementId, {
-        data: {
-          id: actor.elementId,
-          label: actor.properties.name || actor.elementId,
-          type: 'Actor',
-        },
-      })
+      if (actor) {
+        nodes.set(actor.elementId, {
+          data: {
+            id: actor.elementId,
+            label: actor.properties.name || actor.elementId,
+            type: 'Actor',
+          },
+        })
+      }
 
-      nodes.set(movie.elementId, {
-        data: {
-          id: movie.elementId,
-          label: movie.properties.title || movie.elementId,
-          type: 'Movie',
-        },
-      })
+      if (movie) {
+        nodes.set(movie.elementId, {
+          data: {
+            id: movie.elementId,
+            label: movie.properties.title || movie.elementId,
+            type: 'Movie',
+          },
+        })
+      }
 
-      edges.push({
-        data: {
-          id: relationship.elementId,
-          source: actor.elementId,
-          target: movie.elementId,
-          label: relationship.type,
-        },
-      })
+      if (actor && movie && relationship) {
+        edges.push({
+          data: {
+            id: relationship.elementId,
+            source: actor.elementId,
+            target: movie.elementId,
+            label: relationship.type,
+          },
+        })
+      }
     })
 
     res.json({

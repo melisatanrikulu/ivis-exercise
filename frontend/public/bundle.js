@@ -59877,7 +59877,6 @@ const GraphModel = Backbone.Model.extend({
         nodeRepulsion: 4500,
         idealEdgeLength: 50,
         gravity: 0.25,
-        fit: true,
         randomize: false,
         padding: 30,
       },
@@ -59979,7 +59978,7 @@ const AppView = Backbone.View.extend({
       <div class="app">
         <div class="toolbar">
           <input class="actor-name" type="text" placeholder="Actor name">
-          <input class="actor-depth" type="number" min="1" value="1">
+          <input class="actor-depth" type="number" min="0" value="1">
           <button class="load-graph">Load graph</button>
         </div>
         <div class="content">

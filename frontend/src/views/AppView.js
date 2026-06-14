@@ -37,7 +37,7 @@ const AppView = Backbone.View.extend({
       <div class="app">
         <div class="toolbar">
           <input class="actor-name" type="text" placeholder="Actor name">
-          <input class="actor-depth" type="number" min="1" value="1">
+          <input class="actor-depth" type="number" min="0" value="1">
           <button class="load-graph">Load graph</button>
         </div>
         <div class="content">
